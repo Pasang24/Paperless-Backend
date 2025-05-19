@@ -1,6 +1,7 @@
 import { Request, Response } from "express";
 import { createEmailUser } from "../services/auth.service";
 import { NewEmailUser, NewOAuthUser } from "../types";
+import { generateSession } from "../utils/generateSession";
 
 export const createUser = async (
   req: Request<{}, {}, NewEmailUser | NewOAuthUser>,
@@ -23,6 +24,12 @@ export const createUser = async (
         return;
       }
 
+      const { id } = newUser;
+
+      generateSession(res, id);
+
+      res.status(204).send();
+      return;
     case "google":
     case "github":
       break;
