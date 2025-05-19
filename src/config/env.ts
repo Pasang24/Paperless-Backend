@@ -14,4 +14,8 @@ export const env = {
   NODE_ENV: getEnvVariable("NODE_ENV"),
   DATABASE_URL: getEnvVariable("DATABASE_URL"),
   JWT_SECRET: getEnvVariable("JWT_SECRET"),
+  GOOGLE_CLIENT_ID: getEnvVariable("GOOGLE_CLIENT_ID"),
+  GOOGLE_CLIENT_SECRET: getEnvVariable("GOOGLE_CLIENT_SECRET"),
+  BACKEND_URL: getEnvVariable("BACKEND_URL", false),
+  FRONTEND_URL: getEnvVariable("FRONTEND_URL", false),
 };
