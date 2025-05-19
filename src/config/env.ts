@@ -16,6 +16,8 @@ export const env = {
   JWT_SECRET: getEnvVariable("JWT_SECRET"),
   GOOGLE_CLIENT_ID: getEnvVariable("GOOGLE_CLIENT_ID"),
   GOOGLE_CLIENT_SECRET: getEnvVariable("GOOGLE_CLIENT_SECRET"),
+  GITHUB_CLIENT_ID: getEnvVariable("GITHUB_CLIENT_ID"),
+  GITHUB_CLIENT_SECRET: getEnvVariable("GITHUB_CLIENT_SECRET"),
   BACKEND_URL: getEnvVariable("BACKEND_URL", false),
   FRONTEND_URL: getEnvVariable("FRONTEND_URL", false),
 };

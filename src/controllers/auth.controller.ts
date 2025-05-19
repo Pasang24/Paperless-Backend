@@ -4,6 +4,7 @@ import { NewEmailUser } from "../types";
 import { generateSession } from "../utils/generateSession";
 import { env } from "../config/env";
 import { googleStrategy } from "../oAuthStrategy/googleStrategy";
+import { githubStrategy } from "../oAuthStrategy/githubStrategy";
 
 export const emailRegister = async (
   req: Request<{}, {}, NewEmailUser>,
@@ -62,6 +63,47 @@ export const googleLoginCallback = async (
     email: profile.email,
     name: profile.name,
     provider: "google",
+  });
+
+  generateSession(res, newUser.id);
+
+  res.redirect(env.FRONTEND_URL);
+};
+
+export const githubLoginRedirect = (req: Request, res: Response) => {
+  const redirectUrl =
+    "https://github.com/login/oauth/authorize?" +
+    new URLSearchParams({
+      client_id: env.GITHUB_CLIENT_ID as string,
+      redirect_uri: `${env.BACKEND_URL}/auth/github/callback`,
+      prompt: "select_account",
+      scope: "read:user user:email",
+    });
+
+  res.redirect(redirectUrl);
+};
+
+export const githubLoginCallback = async (
+  req: Request<{}, {}, {}, { code?: string; error?: string }>,
+  res: Response
+) => {
+  const { code, error } = req.query;
+
+  if (!code) {
+    throw new Error("Missing authorization code");
+  }
+
+  const profile = await githubStrategy(
+    code,
+    env.GITHUB_CLIENT_ID,
+    env.GITHUB_CLIENT_SECRET,
+    `${env.BACKEND_URL}/auth/github/callback`
+  );
+
+  const newUser = await createOAuthUser({
+    email: profile.email,
+    name: profile.name,
+    provider: "github",
   });
 
   generateSession(res, newUser.id);
