@@ -1,5 +1,9 @@
 import { Request, Response } from "express";
-import { createEmailUser, createOAuthUser } from "../services/auth.service";
+import {
+  createEmailUser,
+  createOAuthUser,
+  findUser,
+} from "../services/auth.service";
 import { NewEmailUser } from "../types";
 import { generateSession } from "../utils/generateSession";
 import { env } from "../config/env";
@@ -25,6 +29,31 @@ export const emailRegister = async (
   }
 
   generateSession(res, newUser.id);
+
+  res.status(204).send();
+};
+
+export const emailLogin = async (
+  req: Request<{}, {}, { email: string; password: string }, {}>,
+  res: Response
+) => {
+  const { email, password } = req.body;
+
+  const currentUser = await findUser(email, "email");
+
+  if (!currentUser) {
+    res.status(401).json({ message: "Invalid Email or Password" });
+    return;
+  }
+
+  const isMatch = password === currentUser.password;
+
+  if (!isMatch) {
+    res.status(401).json({ message: "Invalid Email or Password" });
+    return;
+  }
+
+  generateSession(res, currentUser.id);
 
   res.status(204).send();
 };

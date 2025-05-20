@@ -1,6 +1,6 @@
 import { user } from "../db/schema";
 
-type NewUser = typeof user.$inferInsert;
+export type NewUser = typeof user.$inferInsert;
 
 export interface NewEmailUser
   extends Required<Pick<NewUser, "name" | "email">> {

@@ -1,7 +1,21 @@
 import { and, eq } from "drizzle-orm";
 import db from "../db";
 import { user } from "../db/schema";
-import { NewEmailUser, NewOAuthUser } from "../types";
+import { NewEmailUser, NewOAuthUser, NewUser } from "../types";
+
+export const findUser = async (
+  email: string,
+  provider: NewUser["provider"]
+) => {
+  const response = await db
+    .select()
+    .from(user)
+    .where(and(eq(user.email, email), eq(user.provider, provider!)));
+
+  const currentUser = response[0];
+
+  return currentUser ? currentUser : null;
+};
 
 export const createEmailUser = async (userData: NewEmailUser) => {
   const { name, email, password } = userData;
@@ -33,12 +47,7 @@ export const createOAuthUser = async (userData: NewOAuthUser) => {
   let newUser = response[0];
 
   if (!newUser) {
-    const response = await db
-      .select()
-      .from(user)
-      .where(and(eq(user.email, email), eq(user.provider, provider!)));
-
-    newUser = response[0];
+    newUser = (await findUser(email, provider))!;
   }
 
   return newUser;
