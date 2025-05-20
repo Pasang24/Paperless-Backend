@@ -1,5 +1,6 @@
 import { Router } from "express";
 import {
+  emailLogin,
   emailRegister,
   githubLoginCallback,
   githubLoginRedirect,
@@ -9,6 +10,7 @@ import {
 
 const router = Router();
 
+router.post("/email-login", emailLogin);
 router.post("/email-register", emailRegister);
 router.get("/google", googleLoginRedirect);
 router.get("/google/callback", googleLoginCallback);

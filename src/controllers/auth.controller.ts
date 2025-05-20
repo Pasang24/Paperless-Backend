@@ -29,9 +29,11 @@ export const emailRegister = async (
     return;
   }
 
-  generateSession(res, newUser.id);
+  const { id } = newUser;
 
-  res.status(204).send();
+  generateSession(res, id);
+
+  res.status(201).send({ id, email, name });
 };
 
 export const emailLogin = async (
@@ -54,9 +56,11 @@ export const emailLogin = async (
     return;
   }
 
-  generateSession(res, currentUser.id);
+  const { id, name } = currentUser;
 
-  res.status(204).send();
+  generateSession(res, id);
+
+  res.status(200).send({ id, email, name });
 };
 
 export const googleLoginRedirect = (req: Request, res: Response) => {
