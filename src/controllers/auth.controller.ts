@@ -9,6 +9,7 @@ import { generateSession } from "../utils/generateSession";
 import { env } from "../config/env";
 import { googleStrategy } from "../oAuthStrategy/googleStrategy";
 import { githubStrategy } from "../oAuthStrategy/githubStrategy";
+import bcrypt from "bcrypt";
 
 export const emailRegister = async (
   req: Request<{}, {}, NewEmailUser>,
@@ -46,7 +47,7 @@ export const emailLogin = async (
     return;
   }
 
-  const isMatch = password === currentUser.password;
+  const isMatch = await bcrypt.compare(password, currentUser.password!);
 
   if (!isMatch) {
     res.status(401).json({ message: "Invalid Email or Password" });

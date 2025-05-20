@@ -1,5 +1,6 @@
-import { and, eq } from "drizzle-orm";
 import db from "../db";
+import bcrypt from "bcrypt";
+import { and, eq } from "drizzle-orm";
 import { user } from "../db/schema";
 import { NewEmailUser, NewOAuthUser, NewUser } from "../types";
 
@@ -20,9 +21,11 @@ export const findUser = async (
 export const createEmailUser = async (userData: NewEmailUser) => {
   const { name, email, password } = userData;
 
+  const hashedPassword = await bcrypt.hash(password, 10);
+
   const response = await db
     .insert(user)
-    .values({ name, email, password })
+    .values({ name, email, password: hashedPassword })
     .onConflictDoNothing()
     .returning();
 
