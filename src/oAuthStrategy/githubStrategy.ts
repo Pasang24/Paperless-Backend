@@ -1,4 +1,5 @@
 import { GitHubEmail, GitHubProfile, GitHubToken } from "../types";
+import { ApiError } from "../utils/ApiError";
 
 export const githubStrategy = async (
   code: string,
@@ -21,6 +22,10 @@ export const githubStrategy = async (
   });
 
   const tokenData: GitHubToken = await tokenRes.json();
+
+  if (!tokenRes.ok || "error" in tokenData) {
+    throw new ApiError(400, "Invalid or expired code");
+  }
 
   const accessToken = tokenData.access_token;
 

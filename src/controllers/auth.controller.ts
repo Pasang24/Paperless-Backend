@@ -1,4 +1,4 @@
-import { Request, Response } from "express";
+import { NextFunction, Request, Response } from "express";
 import {
   createEmailUser,
   createOAuthUser,
@@ -9,58 +9,66 @@ import { generateSession } from "../utils/generateSession";
 import { env } from "../config/env";
 import { googleStrategy } from "../oAuthStrategy/googleStrategy";
 import { githubStrategy } from "../oAuthStrategy/githubStrategy";
+import { ApiError } from "../utils/ApiError";
 import bcrypt from "bcrypt";
 
 export const emailRegister = async (
   req: Request<{}, {}, NewEmailUser>,
-  res: Response
+  res: Response,
+  next: NextFunction
 ) => {
-  const { name, email, password, provider } = req.body;
+  try {
+    const { name, email, password, provider } = req.body;
 
-  const newUser = await createEmailUser({
-    name,
-    email,
-    password,
-    provider,
-  });
+    const newUser = await createEmailUser({
+      name,
+      email,
+      password,
+      provider,
+    });
 
-  if (!newUser) {
-    res.status(409).send({ message: "User already exists" });
-    return;
+    if (!newUser) {
+      throw new ApiError(409, "User already exists");
+    }
+
+    const { id } = newUser;
+
+    generateSession(res, id);
+
+    res.status(201).send({ id, email, name });
+  } catch (error) {
+    next(error);
   }
-
-  const { id } = newUser;
-
-  generateSession(res, id);
-
-  res.status(201).send({ id, email, name });
 };
 
 export const emailLogin = async (
   req: Request<{}, {}, { email: string; password: string }, {}>,
-  res: Response
+  res: Response,
+  next: NextFunction
 ) => {
-  const { email, password } = req.body;
+  try {
+    const { email, password } = req.body;
 
-  const currentUser = await findUser(email, "email");
+    const currentUser = await findUser(email, "email");
 
-  if (!currentUser) {
-    res.status(401).json({ message: "Invalid Email or Password" });
-    return;
+    if (!currentUser) {
+      throw new ApiError(401, "Invalid Email or Password");
+    }
+
+    const isMatch = await bcrypt.compare(password, currentUser.password!);
+
+    if (!isMatch) {
+      throw new ApiError(401, "Invalid Email or Password");
+    }
+
+    const { id, name } = currentUser;
+
+    generateSession(res, id);
+
+    res.status(200).send({ id, email, name });
+  } catch (error) {
+    next(error);
   }
-
-  const isMatch = await bcrypt.compare(password, currentUser.password!);
-
-  if (!isMatch) {
-    res.status(401).json({ message: "Invalid Email or Password" });
-    return;
-  }
-
-  const { id, name } = currentUser;
-
-  generateSession(res, id);
-
-  res.status(200).send({ id, email, name });
 };
 
 export const googleLoginRedirect = (req: Request, res: Response) => {
@@ -78,35 +86,40 @@ export const googleLoginRedirect = (req: Request, res: Response) => {
 
 export const googleLoginCallback = async (
   req: Request<{}, {}, {}, { code?: string; error?: string }>,
-  res: Response
+  res: Response,
+  next: NextFunction
 ) => {
-  const { code, error } = req.query;
+  try {
+    const { code, error } = req.query;
 
-  if (error) {
-    res.redirect(`${env.FRONTEND_URL}/login`);
-    return;
+    if (error) {
+      res.redirect(`${env.FRONTEND_URL}/login`);
+      return;
+    }
+
+    if (!code) {
+      throw new ApiError(400, "Missing authorization code");
+    }
+
+    const profile = await googleStrategy(
+      code,
+      env.GOOGLE_CLIENT_ID,
+      env.GOOGLE_CLIENT_SECRET,
+      `${env.BACKEND_URL}/auth/google/callback`
+    );
+
+    const newUser = await createOAuthUser({
+      email: profile.email,
+      name: profile.name,
+      provider: "google",
+    });
+
+    const token = generateSession(res, newUser.id);
+
+    res.redirect(`${env.FRONTEND_URL}/api/auth/oAuth?token=${token}`);
+  } catch (error) {
+    next(error);
   }
-
-  if (!code) {
-    throw new Error("Missing authorization code");
-  }
-
-  const profile = await googleStrategy(
-    code,
-    env.GOOGLE_CLIENT_ID,
-    env.GOOGLE_CLIENT_SECRET,
-    `${env.BACKEND_URL}/auth/google/callback`
-  );
-
-  const newUser = await createOAuthUser({
-    email: profile.email,
-    name: profile.name,
-    provider: "google",
-  });
-
-  const token = generateSession(res, newUser.id);
-
-  res.redirect(`${env.FRONTEND_URL}/api/auth/oAuth?token=${token}`);
 };
 
 export const githubLoginRedirect = (req: Request, res: Response) => {
@@ -124,33 +137,38 @@ export const githubLoginRedirect = (req: Request, res: Response) => {
 
 export const githubLoginCallback = async (
   req: Request<{}, {}, {}, { code?: string; error?: string }>,
-  res: Response
+  res: Response,
+  next: NextFunction
 ) => {
-  const { code, error } = req.query;
+  try {
+    const { code, error } = req.query;
 
-  if (error) {
-    res.redirect(`${env.FRONTEND_URL}/login`);
-    return;
+    if (error) {
+      res.redirect(`${env.FRONTEND_URL}/login`);
+      return;
+    }
+
+    if (!code) {
+      throw new ApiError(400, "Missing authorization code");
+    }
+
+    const profile = await githubStrategy(
+      code,
+      env.GITHUB_CLIENT_ID,
+      env.GITHUB_CLIENT_SECRET,
+      `${env.BACKEND_URL}/auth/github/callback`
+    );
+
+    const newUser = await createOAuthUser({
+      email: profile.email,
+      name: profile.name,
+      provider: "github",
+    });
+
+    const token = generateSession(res, newUser.id);
+
+    res.redirect(`${env.FRONTEND_URL}/api/auth/oAuth?token=${token}`);
+  } catch (error) {
+    next(error);
   }
-
-  if (!code) {
-    throw new Error("Missing authorization code");
-  }
-
-  const profile = await githubStrategy(
-    code,
-    env.GITHUB_CLIENT_ID,
-    env.GITHUB_CLIENT_SECRET,
-    `${env.BACKEND_URL}/auth/github/callback`
-  );
-
-  const newUser = await createOAuthUser({
-    email: profile.email,
-    name: profile.name,
-    provider: "github",
-  });
-
-  const token = generateSession(res, newUser.id);
-
-  res.redirect(`${env.FRONTEND_URL}/api/auth/oAuth?token=${token}`);
 };

@@ -1,4 +1,5 @@
 import { GoogleProfile, GoogleToken } from "../types";
+import { ApiError } from "../utils/ApiError";
 
 export const googleStrategy = async (
   code: string,
@@ -19,6 +20,10 @@ export const googleStrategy = async (
   });
 
   const tokenData: GoogleToken = await tokenRes.json();
+
+  if (!tokenRes.ok || "error" in tokenData) {
+    throw new ApiError(400, "Invalid or expired code");
+  }
 
   const accessToken = tokenData.access_token;
 

@@ -3,6 +3,7 @@ import cors, { CorsOptions } from "cors";
 import { env } from "./config/env";
 import cookieParser from "cookie-parser";
 import authRouter from "./routes/auth.route";
+import { errorHandler } from "./middlewares/errorHandler";
 
 const app = express();
 
@@ -24,5 +25,8 @@ app.use("/auth", authRouter);
 app.get("/", (req, res) => {
   res.send("Hello World");
 });
+
+//global error handler middleware
+app.use(errorHandler);
 
 export default app;
