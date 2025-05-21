@@ -3,7 +3,9 @@ import cors, { CorsOptions } from "cors";
 import { env } from "./config/env";
 import cookieParser from "cookie-parser";
 import authRouter from "./routes/auth.route";
+import userRouter from "./routes/user.route";
 import { errorHandler } from "./middlewares/errorHandler";
+import { authMiddleware } from "./middlewares/authMiddleware";
 
 const app = express();
 
@@ -21,6 +23,7 @@ app.use(express.urlencoded({ extended: true }));
 
 //routes
 app.use("/auth", authRouter);
+app.use("/user", authMiddleware, userRouter);
 
 app.get("/", (req, res) => {
   res.send("Hello World");
