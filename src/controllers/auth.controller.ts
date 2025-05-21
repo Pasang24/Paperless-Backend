@@ -82,6 +82,11 @@ export const googleLoginCallback = async (
 ) => {
   const { code, error } = req.query;
 
+  if (error) {
+    res.redirect(`${env.FRONTEND_URL}/login`);
+    return;
+  }
+
   if (!code) {
     throw new Error("Missing authorization code");
   }
@@ -122,6 +127,11 @@ export const githubLoginCallback = async (
   res: Response
 ) => {
   const { code, error } = req.query;
+
+  if (error) {
+    res.redirect(`${env.FRONTEND_URL}/login`);
+    return;
+  }
 
   if (!code) {
     throw new Error("Missing authorization code");
