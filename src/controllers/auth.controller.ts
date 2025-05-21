@@ -99,9 +99,9 @@ export const googleLoginCallback = async (
     provider: "google",
   });
 
-  generateSession(res, newUser.id);
+  const token = generateSession(res, newUser.id);
 
-  res.redirect(env.FRONTEND_URL);
+  res.redirect(`${env.FRONTEND_URL}/api/auth/oAuth?token=${token}`);
 };
 
 export const githubLoginRedirect = (req: Request, res: Response) => {
@@ -140,7 +140,7 @@ export const githubLoginCallback = async (
     provider: "github",
   });
 
-  generateSession(res, newUser.id);
+  const token = generateSession(res, newUser.id);
 
-  res.redirect(env.FRONTEND_URL);
+  res.redirect(`${env.FRONTEND_URL}/api/auth/oAuth?token=${token}`);
 };
