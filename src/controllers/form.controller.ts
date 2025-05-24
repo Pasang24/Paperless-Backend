@@ -9,8 +9,14 @@ export const addForm = async (
 ) => {
   try {
     const { title, description = "", formSchema } = req.body;
+    const { id } = req.user!;
 
-    const newForm = await createForm({ title, description, formSchema });
+    const newForm = await createForm({
+      userId: id,
+      title,
+      description,
+      formSchema,
+    });
 
     res.status(201).send(newForm);
   } catch (error) {

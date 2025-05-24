@@ -6,6 +6,7 @@ export const createForm = async ({
   title,
   description,
   formSchema,
+  userId,
 }: NewForm) => {
   const response = await db
     .insert(form)
@@ -13,6 +14,7 @@ export const createForm = async ({
       title,
       formSchema,
       description,
+      userId,
     })
     .returning();
 
