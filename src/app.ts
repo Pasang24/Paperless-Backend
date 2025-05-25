@@ -6,7 +6,6 @@ import authRouter from "./routes/auth.route";
 import userRouter from "./routes/user.route";
 import formRouter from "./routes/form.route";
 import { errorHandler } from "./middlewares/errorHandler";
-import { authMiddleware } from "./middlewares/authMiddleware";
 
 const app = express();
 
@@ -24,8 +23,8 @@ app.use(express.urlencoded({ extended: true }));
 
 //routes
 app.use("/auth", authRouter);
-app.use("/user", authMiddleware, userRouter);
-app.use("/form", authMiddleware, formRouter);
+app.use("/user", userRouter);
+app.use("/form", formRouter);
 
 app.get("/", (req, res) => {
   res.send("Hello World");
