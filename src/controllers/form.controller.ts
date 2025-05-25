@@ -1,6 +1,7 @@
 import { NextFunction, Request, Response } from "express";
 import { NewForm } from "../types/form";
-import { createForm } from "../services/form.service";
+import { createForm, getAllForms } from "../services/form.service";
+import { ApiError } from "../utils/ApiError";
 
 export const addForm = async (
   req: Request<{}, {}, NewForm, {}>,
@@ -9,16 +10,40 @@ export const addForm = async (
 ) => {
   try {
     const { title, description = "", formSchema } = req.body;
-    const { id } = req.user!;
+    const { user } = req;
+
+    if (!user) {
+      throw new ApiError(401, "Unauthorized");
+    }
 
     const newForm = await createForm({
-      userId: id,
+      userId: user.id,
       title,
       description,
       formSchema,
     });
 
     res.status(201).send(newForm);
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const getMyForms = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const { user } = req;
+
+    if (!user) {
+      throw new ApiError(401, "Unauthorized");
+    }
+
+    const myForms = await getAllForms(user.id);
+
+    res.status(200).json(myForms);
   } catch (error) {
     next(error);
   }

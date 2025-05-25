@@ -1,4 +1,5 @@
 import db from "../db";
+import { eq } from "drizzle-orm";
 import { form } from "../db/schema";
 import { NewForm } from "../types/form";
 
@@ -21,4 +22,18 @@ export const createForm = async ({
   const newForm = response[0];
 
   return newForm;
+};
+
+export const getAllForms = async (userId: string) => {
+  const response = await db
+    .select({
+      id: form.id,
+      title: form.title,
+      createdAt: form.createdAt,
+      updatedAt: form.updatedAt,
+    })
+    .from(form)
+    .where(eq(form.userId, userId));
+
+  return response;
 };
