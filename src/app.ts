@@ -5,6 +5,7 @@ import cookieParser from "cookie-parser";
 import authRouter from "./routes/auth.route";
 import userRouter from "./routes/user.route";
 import formRouter from "./routes/form.route";
+import responseRouter from "./routes/response.route";
 import { errorHandler } from "./middlewares/errorHandler";
 
 const app = express();
@@ -25,6 +26,7 @@ app.use(express.urlencoded({ extended: true }));
 app.use("/auth", authRouter);
 app.use("/user", userRouter);
 app.use("/form", formRouter);
+app.use("/response", responseRouter);
 
 app.get("/", (req, res) => {
   res.send("Hello World");
