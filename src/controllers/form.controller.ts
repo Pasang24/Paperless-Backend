@@ -1,6 +1,11 @@
 import { NextFunction, Request, Response } from "express";
 import { NewForm } from "../types/form";
-import { createForm, getAllForms, getForm } from "../services/form.service";
+import {
+  createForm,
+  deleteForm,
+  getAllForms,
+  getForm,
+} from "../services/form.service";
 import { ApiError } from "../utils/ApiError";
 
 export const addForm = async (
@@ -24,6 +29,41 @@ export const addForm = async (
     });
 
     res.status(201).send(newForm);
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const removeForm = async (
+  req: Request<{}, {}, {}, { formId: string }>,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const { formId } = req.query;
+    const { user } = req;
+
+    if (!formId) {
+      throw new ApiError(400, "Form ID is required");
+    }
+
+    if (!user) {
+      throw new ApiError(401, "Unauthorized");
+    }
+
+    const form = await getForm(formId);
+
+    if (!form) {
+      throw new ApiError(404, "Invalid Form ID");
+    }
+
+    if (form.userId !== user.id) {
+      throw new ApiError(403, "User forbidden to delete this form");
+    }
+
+    const deletedForm = await deleteForm(formId);
+
+    res.status(200).json(deletedForm);
   } catch (error) {
     next(error);
   }

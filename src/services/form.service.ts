@@ -24,11 +24,20 @@ export const createForm = async ({
   return newForm;
 };
 
+export const deleteForm = async (formId: string) => {
+  const response = await db.delete(form).where(eq(form.id, formId)).returning();
+
+  const deletedForm = response[0];
+
+  return deletedForm;
+};
+
 export const getForm = async (formId: string) => {
   const response = await db
     .select({
       id: form.id,
       title: form.title,
+      userId: form.userId,
       description: form.description,
       formSchema: form.formSchema,
     })
